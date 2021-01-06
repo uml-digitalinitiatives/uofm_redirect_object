@@ -79,16 +79,13 @@ function uofm_redirect_object_upload_form_submit(array $form, array &$form_state
 function _uofm_redirect_object($title) {
   $convert = variable_get('imagemagick_convert', 'convert');
   $name = tempnam(file_directory_temp(), 'uofm_redirect_object_');
-  $tmpName = $name . '-tmp.png';
   file_unmanaged_delete($name);
+  $name .= '.png';
 
-  $cmd = escapeshellcmd($convert) . " -size 1000x1000 xc:white ";
-  $cmd .= " -pointsize 100 -fill black ";
-  $cmd .= "-gravity center -annotate +0+0 " . escapeshellarg(wordwrap($title, 15)) ;
-  $cmd .= " " . $tmpName;
+  $cmd = escapeshellcmd($convert) . " -size 300x300 xc:white";
+  $cmd .= " -fill black -gravity Center -interline-spacing 25 -pointsize 24";
+  $cmd .= " caption:" . escapeshellarg($title) . " -flatten $name";
   exec($cmd);
-  $cmd = escapeshellcmd($convert) . " $tmpName -resize 300x300 $name";
-  exec($cmd);
-  file_unmanaged_delete($tmpName);
+
   return $name;
 }
