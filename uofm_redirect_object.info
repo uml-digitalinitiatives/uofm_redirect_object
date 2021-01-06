@@ -1,0 +1,8 @@
+name = "UofM Redirect Object"
+description = "An object which holds no metadata but provides a redirect to an external resource."
+dependencies[] = islandora
+package = Islandora Local Customization
+version = 7.x-dev
+core = 7.x
+dependencies[] = islandora
+dependencies[] = imagemagick

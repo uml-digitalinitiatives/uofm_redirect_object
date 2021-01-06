@@ -1,0 +1,125 @@
+<?php
+/**
+ * @file
+ * Holds all internal methods.
+ */
+
+const UOFM_REDIRECT_PREDICATE_NS = "https://digitalcollections.lib.umanitoba.ca/ontology/islandora#";
+const UOFM_REDIRECT_PREDICATE_TAG = "redirect";
+
+/**
+ * Implements hook_menu().
+ */
+function uofm_redirect_object_menu() {
+  return [
+    'islandora/object/%islandora_object/manage/redirect' => [
+      'title' => 'Redirect',
+      'page callback' => 'drupal_get_form',
+      'file' => 'includes/object_property_form.inc.php',
+      'page arguments' => array('uofm_redirect_object_property_form', 2),
+      'type' => MENU_LOCAL_TASK,
+      'access callback' => 'uofm_redirect_object_manage_access_callback',
+      'access arguments' => array(ISLANDORA_MANAGE_PROPERTIES, 2),
+      'weight' => -5,
+    ],
+  ];
+}
+
+/**
+ * Provides access checks for redirect manage tab.
+ * @param string $permissions The permissions to request.
+ * @param \AbstractObject $object The object to check permissions on.
+ * @return bool TRUE if access is allowed, FALSE otherwise.
+ */
+function uofm_redirect_object_manage_access_callback($permissions, AbstractObject $object) {
+  if (in_array('uofm-model:sp_redirect_object', $object->models)) {
+    return islandora_object_access_callback($permissions, $object);
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_islandora_required_objects().
+ */
+function uofm_redirect_object_islandora_required_objects(IslandoraTuque $connection) {
+  $module_path = drupal_get_path('module', 'uofm_redirect_object');
+  // Image Content Model.
+  $redirect_object_model = $connection->repository->constructObject('uofm-model:sp_redirect_object');
+  $redirect_object_model->owner = 'fedoraAdmin';
+  $redirect_object_model->label = 'UofM Redirect Object Content Model';
+  $redirect_object_model->models = 'fedora-system:ContentModel-3.0';
+  // DS-COMPOSITE-MODEL Datastream.
+  $datastream = $redirect_object_model->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $datastream->mimetype = 'application/xml';
+  $datastream->setContentFromFile("$module_path/xml/uofm_redirect_object_composite_ds_model.xml", FALSE);
+  $redirect_object_model->ingestDatastream($datastream);
+  return array(
+    'uofm_redirect_object' => array(
+      'title' => 'UofM Redirect Object',
+      'objects' => array(
+        $redirect_object_model,
+      ),
+    ),
+  );
+}
+
+function uofm_redirect_object_uofm_model_sp_redirect_object_islandora_derivative() {
+  return array(
+    array(
+      'source_dsid' => 'OBJ',
+      'destination_dsid' => 'TN',
+      'weight' => '0',
+      'function' => array(
+        'islandora_basic_image_create_thumbnail',
+      ),
+      'file' => drupal_get_path('module', 'islandora_basic_image') . '/includes/derivatives.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function uofm_redirect_object_uofm_model_sp_redirect_object_islandora_ingest_steps() {
+  return array(
+    'uofm_redirect_object' => array(
+      'weight' => 10,
+      'type' => 'form',
+      'form_id' => 'uofm_redirect_object_upload_form',
+      'module' => 'uofm_redirect_object',
+      'file' => 'includes/object_upload_form.inc.php',
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_view_object().
+ */
+function uofm_redirect_object_uofm_model_sp_redirect_object_islandora_view_object($object, $page_number, $page_size) {
+  if (!empty($object['RELS-INT'])) {
+    $url = uofm_redirect_object_get_url($object);
+    if (!empty($url)) {
+      drupal_set_title($object->label);
+      $form = [
+        '#type' => 'markup',
+        '#markup' => t('This resource is located at <a href="!url" target="_new">!url</a>.',
+          ['!url' => $url])
+      ];
+      return drupal_render($form);
+    }
+  }
+}
+
+/**
+ * Return the redirect URL for the object.
+ * @param \AbstractObject $object The object
+ * @return string The URL or "" if none.
+ */
+function uofm_redirect_object_get_url(AbstractObject $object) {
+  $relationships = $object['RELS-INT']->relationships->get(UOFM_REDIRECT_PREDICATE_NS, UOFM_REDIRECT_PREDICATE_TAG);
+  if (count($relationships) > 0) {
+    return $relationships[0]['object']['value'];
+  }
+  return "";
+}
