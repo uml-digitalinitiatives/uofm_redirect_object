@@ -103,6 +103,8 @@ function uofm_redirect_object_uofm_model_sp_redirect_object_islandora_view_objec
       drupal_set_title($object->label);
       $form = [
         '#type' => 'markup',
+        '#prefix' => '<div class="redirect_object">',
+        '#suffix' => '</div>',
         '#markup' => t('This resource is located at <a href="!url" target="_new">!url</a>.',
           ['!url' => $url])
       ];

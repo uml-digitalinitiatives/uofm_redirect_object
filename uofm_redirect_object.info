@@ -6,3 +6,4 @@ version = 7.x-dev
 core = 7.x
 dependencies[] = islandora
 dependencies[] = imagemagick
+stylesheets[all][] = css/uofm_redirect_object.css
