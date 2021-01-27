@@ -13,13 +13,6 @@
  */
 function uofm_redirect_object_upload_form(array $form, array &$form_state) {
   return array(
-    'title' => array(
-      '#title' => t('Title'),
-      '#type' => 'textfield',
-      '#required' => true,
-      '#description' => t('The object\'s title'),
-      '#default_value' => isset($form_state['values']['title']) ? $form_state['values']['title'] : NULL,
-    ),
     'redirect_url' => array(
       '#title' => t('Redirect URL'),
       '#type' => 'textfield',
@@ -40,9 +33,8 @@ function uofm_redirect_object_upload_form(array $form, array &$form_state) {
  */
 function uofm_redirect_object_upload_form_submit(array $form, array &$form_state) {
   $object = islandora_ingest_form_get_object($form_state);
-  $title = $form_state['values']['title'];
+  $title = $object->label;
   if (!empty($title)) {
-    $object->label = $title;
     $file = _uofm_redirect_object($title);
     if (empty($object['OBJ'])) {
       $ds = $object->constructDatastream('OBJ', 'M');

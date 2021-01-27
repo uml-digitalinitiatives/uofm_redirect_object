@@ -105,7 +105,8 @@ function uofm_redirect_object_uofm_model_sp_redirect_object_islandora_view_objec
         '#type' => 'markup',
         '#prefix' => '<div class="redirect_object">',
         '#suffix' => '</div>',
-        '#markup' => t('This resource is located at <a href="!url" target="_new">!url</a>.',
+        '#markup' => t('This resource is located at <a href="!url" target="_new">!url</a>. Please click the link to ' .
+          'access the resource.',
           ['!url' => $url])
       ];
       return drupal_render($form);
